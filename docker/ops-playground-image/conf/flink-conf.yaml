@@ -30,10 +30,12 @@ heartbeat.timeout: 5000
 
 rest.flamegraph.enabled: true
 web.backpressure.refresh-interval: 10000
+zookeeper.sasl.disable: true
 
 high-availability: zookeeper
-high-availability.zookeeper.quorum: zookeeper:2181
+high-availability.zookeeper.quorum: zookeeper-flink:2181
 high-availability.zookeeper.path.root: /flink
 high-availability.cluster-id: /cluster_one # important: customize per cluster
 high-availability.storageDir: file:///tmp/flink/ha/
 jobmanager.execution.failover-strategy: region
+
