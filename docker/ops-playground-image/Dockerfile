@@ -37,5 +37,6 @@ FROM apache/flink:1.16.0-scala_2.12-java11
 WORKDIR /opt/flink/bin
 
 # Copy Click Count Job
-# COPY --from=builder /opt/flink-playground-clickcountjob/target/flink-playground-clickcountjob-*.jar /opt/ClickCountJob.jar
 COPY --from=builder /opt/flink-playground-clickcountjob/target/flink-playground-clickcountjob-*.jar /opt/flink/usrlib/ClickCountJob.jar
+
+COPY ./conf /opt/flink/conf

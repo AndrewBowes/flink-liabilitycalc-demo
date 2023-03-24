@@ -17,9 +17,6 @@
 ################################################################################
 
 jobmanager.memory.process.size: 1600Mb
-jobmanager.rpc.address: jobmanager
-blob.server.port: 6124
-query.server.port: 6125
 
 taskmanager.memory.process.size: 1728Mb
 taskmanager.numberOfTaskSlots: 2
@@ -34,8 +31,9 @@ heartbeat.timeout: 5000
 rest.flamegraph.enabled: true
 web.backpressure.refresh-interval: 10000
 
-high-availability.type: zookeeper
+high-availability: zookeeper
 high-availability.zookeeper.quorum: zookeeper:2181
 high-availability.zookeeper.path.root: /flink
 high-availability.cluster-id: /cluster_one # important: customize per cluster
-high-availability.storageDir: file:///flink/recovery
+high-availability.storageDir: file:///tmp/flink/ha/
+jobmanager.execution.failover-strategy: region
