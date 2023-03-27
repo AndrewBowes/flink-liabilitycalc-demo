@@ -27,6 +27,9 @@ COPY ./java/flink-playground-clickcountjob /opt/flink-playground-clickcountjob
 WORKDIR /opt/flink-playground-clickcountjob
 RUN mvn clean verify
 
+# WORKAROUND - If this is not working, try using this below to download the dependencies the first time. It's obviously not a great idea!
+# RUN mvn clean verify -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true
+
 
 ###############################################################################
 # Build Operations Playground Image
