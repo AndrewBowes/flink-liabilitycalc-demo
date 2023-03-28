@@ -21,26 +21,12 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.apache.flink</groupId>
-	<artifactId>flink-playground-clickcountjob</artifactId>
+	<artifactId>flink-liabilitycalc-demo</artifactId>
 	<version>1-FLINK-1.16_2.12</version>
 
-	<name>flink-playground-clickcountjob</name>
+	<name>flink-liabilitycalc-job</name>
 	<packaging>jar</packaging>
 	<url>https://flink.apache.org</url>
-
-	<licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <scm>
-        <url>https://github.com/apache/flink-playgrounds</url>
-        <connection>git@github.com:apache/flink-playgrounds.git</connection>
-        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/flink-playgrounds.git</developerConnection>
-    </scm>
 
     <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

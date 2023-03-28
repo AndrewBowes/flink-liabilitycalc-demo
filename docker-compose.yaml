@@ -23,15 +23,15 @@ volumes:
   zookeeper-log:
     driver: local
 services:
-  clickevent-generator:
-    build: docker/ops-playground-image
-    image: apache/flink-ops-playground:1-FLINK-1.16-scala_2.12
+  bet-generator:
+    build: docker/liability-calculator-image
+    image: flutter/liability-calculator:1-FLINK-1.16-scala_2.12
     command: "java -classpath /opt/flink/usrlib/ClickCountJob.jar:/opt/flink/lib/* org.apache.flink.playgrounds.ops.clickcount.ClickEventGenerator --bootstrap.servers kafka:9092 --topic input"
     depends_on:
       - kafka
       - zookeeper
   jobmanager-1:
-    image: apache/flink-ops-playground:1-FLINK-1.16-scala_2.12
+    image: flutter/liability-calculator:1-FLINK-1.16-scala_2.12
     command: "standalone-job.sh start-foreground --job.classname org.apache.flink.playgrounds.ops.clickcount.ClickEventCount --bootstrap.servers kafka:9092 --event-time --checkpointing"
     depends_on: 
       - kafka
@@ -43,7 +43,7 @@ services:
       - /tmp/flink-savepoints-directory:/tmp/flink-savepoints-directory
       - /tmp/flink/ha:/tmp/flink/ha
   jobmanager-2:
-      image: apache/flink-ops-playground:1-FLINK-1.16-scala_2.12
+      image: flutter/liability-calculator:1-FLINK-1.16-scala_2.12
       command: "standalone-job.sh start-foreground --job.classname org.apache.flink.playgrounds.ops.clickcount.ClickEventCount --bootstrap.servers kafka:9092 --event-time --checkpointing"
       depends_on:
         - kafka
@@ -55,7 +55,7 @@ services:
         - /tmp/flink-savepoints-directory:/tmp/flink-savepoints-directory
         - /tmp/flink/ha:/tmp/flink/ha
   taskmanager:
-    image: apache/flink-ops-playground:1-FLINK-1.16-scala_2.12
+    image: flutter/liability-calculator:1-FLINK-1.16-scala_2.12
     depends_on:
       - jobmanager-1
       - jobmanager-2

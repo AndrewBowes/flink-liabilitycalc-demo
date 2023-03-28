@@ -22,9 +22,9 @@
 
 FROM maven:3.8-eclipse-temurin-17 AS builder
 
-# Get Click Count job and compile it
-COPY ./java/flink-playground-clickcountjob /opt/flink-playground-clickcountjob
-WORKDIR /opt/flink-playground-clickcountjob
+# Get Liability Calculator job and compile it
+COPY ./java/flink-liability-calculator /opt/flink-liability-calculator
+WORKDIR /opt/flink-liability-calculator
 RUN mvn clean verify
 
 # WORKAROUND - If this is not working, try using this below to download the dependencies the first time. It's obviously not a great idea!
@@ -32,14 +32,14 @@ RUN mvn clean verify
 
 
 ###############################################################################
-# Build Operations Playground Image
+# Build Liability Calculator Image
 ###############################################################################
 
 FROM apache/flink:1.16.0-scala_2.12-java11
 
 WORKDIR /opt/flink/bin
 
-# Copy Click Count Job
-COPY --from=builder /opt/flink-playground-clickcountjob/target/flink-playground-clickcountjob-*.jar /opt/flink/usrlib/ClickCountJob.jar
+# Copy Liability Calculator Job
+COPY --from=builder /opt/flink-liability-calculator/target/flink-liability-calculator-*.jar /opt/flink/usrlib/LiabilityCalculator.jar
 
 COPY ./conf /opt/flink/conf
