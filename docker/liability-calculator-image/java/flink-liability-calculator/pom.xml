@@ -60,6 +60,13 @@ under the License.
 			<version>${flink.version}</version>
 		</dependency>
 
+A		<!-- Dependency on FBL Bet Definition -->
+		<dependency>
+			<groupId>com.flutter.gbs</groupId>
+			<artifactId>gbsbom</artifactId>
+			<version>0.26</version>
+		</dependency>
+
 		<!-- Logging dependencies -->
 		<!-- These dependencies are excluded from the application JAR by default. -->
 		<dependency>
