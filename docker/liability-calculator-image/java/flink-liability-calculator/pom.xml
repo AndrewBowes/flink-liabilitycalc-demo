@@ -21,10 +21,10 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.apache.flink</groupId>
-	<artifactId>flink-liabilitycalc-demo</artifactId>
+	<artifactId>liability-calculator</artifactId>
 	<version>1-FLINK-1.16_2.12</version>
 
-	<name>flink-liabilitycalc-job</name>
+	<name>liability-calculator</name>
 	<packaging>jar</packaging>
 	<url>https://flink.apache.org</url>
 
