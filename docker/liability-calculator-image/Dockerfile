@@ -40,6 +40,6 @@ FROM apache/flink:1.16.0-scala_2.12-java11
 WORKDIR /opt/flink/bin
 
 # Copy Liability Calculator Job
-COPY --from=builder /opt/flink-liability-calculator/target/flink-liability-calculator-*.jar /opt/flink/usrlib/LiabilityCalculator.jar
+COPY --from=builder /opt/flink-liability-calculator/target/liability-calculator-*.jar /opt/flink/usrlib/LiabilityCalculator.jar
 
 COPY ./conf /opt/flink/conf
