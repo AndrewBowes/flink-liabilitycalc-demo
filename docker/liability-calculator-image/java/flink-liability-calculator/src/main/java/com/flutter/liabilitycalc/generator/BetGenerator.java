@@ -1,10 +1,8 @@
 package com.flutter.liabilitycalc.generator;
 
 import com.flutter.gbs.bom.proto.*;
-import com.flutter.liabilitycalc.records.OutboundBetSerde;
 import org.apache.flink.api.java.utils.ParameterTool;
 import com.google.protobuf.*;
-import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ser.std.ByteArraySerializer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -28,20 +26,20 @@ public class BetGenerator {
         String topic = params.get("topic", "betstream");
 
         Properties kafkaProps = createKafkaProperties(params);
-        KafkaProducer<byte[], byte[]> producer = new KafkaProducer<>(kafkaProps);
+        try (KafkaProducer<String, byte[]> producer = new KafkaProducer<>(kafkaProps)) {
+            BetIterator betIterator = new BetIterator();
 
-        BetIterator betIterator = new BetIterator();
-        KafkaRecordSerializationSchema<BetOuterClass.Bet> betSerializer = OutboundBetSerde.serializer(topic);
-
-        while (betIterator.hasNext()){
-            BetOuterClass.Bet bet = betIterator.next();
-            ProducerRecord record = new ProducerRecord<>(topic, bet.toByteArray());
-            producer.send(record);
-            Thread.sleep(DELAY);
+            while (betIterator.hasNext()) {
+                BetOuterClass.Bet bet = betIterator.next();
+                ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
+                producer.send(record);
+                Thread.sleep(DELAY);
+            }
         }
     }
 
     private static Properties createKafkaProperties(final ParameterTool params) {
+        //noinspection DuplicatedCode
         String brokers = params.get("bootstrap.servers", "localhost:9092");
         Properties kafkaProps = new Properties();
         kafkaProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
@@ -73,10 +71,11 @@ public class BetGenerator {
         /**
          * Generate a simple Win Only Bet on a given Event, Market & Selection
          *
-         * @param eventId
-         * @param marketId
-         * @param selectionId
-         * @return
+         * @param eventId - The Event that the Market is part of
+         * @param marketId - The Market within the Event that contains the Selection
+         * @param selectionId - The ID of the Selection which is being bet on.
+         *
+         * @return A Bet instance which will be placed on the Kafka Topic.
          */
         private BetOuterClass.Bet generateBet(final long eventId, final long marketId, final long selectionId){
 
@@ -84,7 +83,6 @@ public class BetGenerator {
             long now = System.nanoTime();
             String betId = "PP_" + now + "1234";
 
-            int destination;
             BetOuterClass.Bet bet = BetOuterClass.Bet.newBuilder()
                     .setBetId(StringValue.of(betId))
                     .setDestination(DestinationOuterClass.Destination.newBuilder()
@@ -126,6 +124,5 @@ public class BetGenerator {
 
             return bet;
         }
-
     }
 }
