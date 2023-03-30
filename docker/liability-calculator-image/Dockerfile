@@ -20,12 +20,13 @@
 # Build Click Count Job
 ###############################################################################
 
-FROM maven:3.8-eclipse-temurin-17 AS builder
-
-# Get Liability Calculator job and compile it
-COPY ./java/flink-liability-calculator /opt/flink-liability-calculator
-WORKDIR /opt/flink-liability-calculator
-RUN mvn clean verify
+#FROM maven:3.8-eclipse-temurin-17 AS builder
+#
+## Get Liability Calculator job and compile it
+#COPY ./java/flink-liability-calculator /opt/flink-liability-calculator
+#COPY ./settings.xml /root/.m2/settings.xml
+#WORKDIR /opt/flink-liability-calculator
+#RUN mvn clean verify -X
 
 # WORKAROUND - If this is not working, try using this below to download the dependencies the first time. It's obviously not a great idea!
 # RUN mvn clean verify -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true
@@ -40,6 +41,7 @@ FROM apache/flink:1.16.0-scala_2.12-java11
 WORKDIR /opt/flink/bin
 
 # Copy Liability Calculator Job
-COPY --from=builder /opt/flink-liability-calculator/target/liability-calculator-*.jar /opt/flink/usrlib/LiabilityCalculator.jar
+#COPY --from=builder /opt/flink-liability-calculator/target/liability-calculator-*.jar /opt/flink/usrlib/LiabilityCalculator.jar
+COPY  ./java/flink-liability-calculator/target/liability-calculator-*.jar /opt/flink/usrlib/LiabilityCalculator.jar
 
 COPY ./conf /opt/flink/conf

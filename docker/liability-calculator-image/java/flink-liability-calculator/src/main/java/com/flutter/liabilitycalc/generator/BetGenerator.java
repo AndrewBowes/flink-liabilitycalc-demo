@@ -65,7 +65,7 @@ public class BetGenerator {
             long eventId = base + 1000L;
             long marketId = base + 1001L;
             long selectionId = base + 1003L;
-            return generateBet(eventId, marketId, selectionId);
+            return generateWinOnlyBet(eventId, marketId, selectionId);
         }
 
         /**
@@ -77,13 +77,13 @@ public class BetGenerator {
          *
          * @return A Bet instance which will be placed on the Kafka Topic.
          */
-        private BetOuterClass.Bet generateBet(final long eventId, final long marketId, final long selectionId){
+        private BetOuterClass.Bet generateWinOnlyBet(final long eventId, final long marketId, final long selectionId){
 
-            long betTimestamp = System.currentTimeMillis();
-            long now = System.nanoTime();
-            String betId = "PP_" + now + "1234";
+            final long betTimestamp = System.currentTimeMillis();
+            final long now = System.nanoTime();
+            final String betId = "PP_" + now + "1234";
 
-            BetOuterClass.Bet bet = BetOuterClass.Bet.newBuilder()
+            final BetOuterClass.Bet bet = BetOuterClass.Bet.newBuilder()
                     .setBetId(StringValue.of(betId))
                     .setDestination(DestinationOuterClass.Destination.newBuilder()
                             .setName(DestinationOuterClass.Destination.BetPlatform.PADDY_POWER)
