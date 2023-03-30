@@ -5,6 +5,10 @@ import com.flutter.liabilitycalc.records.OutboundBetSerde;
 import org.apache.flink.api.java.utils.ParameterTool;
 import com.google.protobuf.*;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ser.std.ByteArraySerializer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Iterator;
 import java.util.Properties;
@@ -31,14 +35,20 @@ public class BetGenerator {
 
         while (betIterator.hasNext()){
             BetOuterClass.Bet bet = betIterator.next();
-
-            // TODO Serialize the Bet to the Topic but don't supply a key
+            ProducerRecord record = new ProducerRecord<>(topic, bet.toByteArray());
             producer.send(record);
-
             Thread.sleep(DELAY);
         }
     }
 
+    private static Properties createKafkaProperties(final ParameterTool params) {
+        String brokers = params.get("bootstrap.servers", "localhost:9092");
+        Properties kafkaProps = new Properties();
+        kafkaProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
+        kafkaProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
+        kafkaProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
+        return kafkaProps;
+    }
 
     static class BetIterator implements Iterator<BetOuterClass.Bet> {
 
@@ -74,10 +84,11 @@ public class BetGenerator {
             long now = System.nanoTime();
             String betId = "PP_" + now + "1234";
 
+            int destination;
             BetOuterClass.Bet bet = BetOuterClass.Bet.newBuilder()
                     .setBetId(StringValue.of(betId))
                     .setDestination(DestinationOuterClass.Destination.newBuilder()
-                            .setName(DestinationOuterClass.Destination.BetPlatform.valueOf(destination))
+                            .setName(DestinationOuterClass.Destination.BetPlatform.PADDY_POWER)
                             .build())
                     .setNonCumulativePercentageOfCumulativeMaxBet(DoubleValue.of(3.72))
                     .setCustomer(CustomerOuterClass.Customer.newBuilder()
