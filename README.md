@@ -8,9 +8,10 @@ This demo is based around a custom Docker image, as well as public images for Fl
 
 ### Building the custom Docker image
 
-Build the Docker image by running
+Build the Docker image by running.
 
 ```bash
+mvn clean install
 docker-compose build
 ```
 

@@ -3,10 +3,10 @@ package com.flutter.liabilitycalc.generator;
 import com.flutter.gbs.bom.proto.*;
 import org.apache.flink.api.java.utils.ParameterTool;
 import com.google.protobuf.*;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ser.std.ByteArraySerializer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 import java.util.Iterator;
 import java.util.Properties;
@@ -33,6 +33,7 @@ public class BetGenerator {
                 BetOuterClass.Bet bet = betIterator.next();
                 ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
                 producer.send(record);
+                //noinspection BusyWait
                 Thread.sleep(DELAY);
             }
         }
@@ -83,6 +84,7 @@ public class BetGenerator {
             final long now = System.nanoTime();
             final String betId = "PP_" + now + "1234";
 
+            //noinspection UnnecessaryLocalVariable
             final BetOuterClass.Bet bet = BetOuterClass.Bet.newBuilder()
                     .setBetId(StringValue.of(betId))
                     .setDestination(DestinationOuterClass.Destination.newBuilder()
