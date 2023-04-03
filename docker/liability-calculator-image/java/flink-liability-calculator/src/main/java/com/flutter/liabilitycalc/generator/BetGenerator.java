@@ -1,8 +1,9 @@
 package com.flutter.liabilitycalc.generator;
 
 import com.flutter.gbs.bom.proto.*;
-import org.apache.flink.api.java.utils.ParameterTool;
+import com.flutter.liabilitycalc.records.InboundBetSerializer;
 import com.google.protobuf.*;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -26,13 +27,14 @@ public class BetGenerator {
         String topic = params.get("topic", "betstream");
 
         Properties kafkaProps = createKafkaProperties(params);
-        try (KafkaProducer<String, byte[]> producer = new KafkaProducer<>(kafkaProps)) {
+        try (KafkaProducer<byte[], byte[]> producer = new KafkaProducer<>(kafkaProps)) {
             BetIterator betIterator = new BetIterator();
 
             while (betIterator.hasNext()) {
                 BetOuterClass.Bet bet = betIterator.next();
-                ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
+                ProducerRecord<byte[], byte[]> record = new InboundBetSerializer(topic).serialize(bet, null);
                 producer.send(record);
+                System.out.println("record = " + bet.getBetId());
                 //noinspection BusyWait
                 Thread.sleep(DELAY);
             }
