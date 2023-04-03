@@ -79,6 +79,12 @@ under the License.
 		</dependency>
 
 		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.20</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.twitter</groupId>
 			<artifactId>chill-protobuf</artifactId>
 			<version>${chill-protobuf.version}</version>
@@ -104,7 +110,6 @@ under the License.
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.7.7</version>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
