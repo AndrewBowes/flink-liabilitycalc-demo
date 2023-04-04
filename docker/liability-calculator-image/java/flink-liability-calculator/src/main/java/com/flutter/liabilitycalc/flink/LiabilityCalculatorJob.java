@@ -59,15 +59,15 @@ public class LiabilityCalculatorJob {
                 .reduce(new SelectionLiabilityReducer());
 
         liabilityDataStream.print();
-        liabilityDataStream.sinkTo(KafkaSink.<SelectionLiability>builder()
-                .setKafkaProducerConfig(kafkaProps)
-                .setRecordSerializer(
-                        KafkaRecordSerializationSchema.<SelectionLiability>builder()
-                                .setValueSerializationSchema(new SelectionLiabilitySerializationSchema())
-                                .setTopic(outputTopic)
-                                .build())
-                .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
-                .build());
+//        liabilityDataStream.sinkTo(KafkaSink.<SelectionLiability>builder()
+//                .setKafkaProducerConfig(kafkaProps)
+//                .setRecordSerializer(
+//                        KafkaRecordSerializationSchema.<SelectionLiability>builder()
+//                                .setValueSerializationSchema(new SelectionLiabilitySerializationSchema())
+//                                .setTopic(outputTopic)
+//                                .build())
+//                .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+//                .build());
 
         env.execute("Process Bets");
     }

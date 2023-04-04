@@ -30,14 +30,25 @@ public class BetGenerator {
         try (KafkaProducer<String, byte[]> producer = new KafkaProducer<>(kafkaProps)) {
             BetIterator betIterator = new BetIterator();
 
-            while (betIterator.hasNext()) {
-                BetOuterClass.Bet bet = betIterator.next();
-                ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
-                producer.send(record);
-                //noinspection BusyWait
-                Thread.sleep(DELAY);
+            for (int i = 0; i < 5; i++) {
+                betIterator.setSelectionId(i);
+                for (int j = 0; j < 10; j++) {
+                    BetOuterClass.Bet bet = betIterator.next();
+                    ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
+                    producer.send(record);
+                    Thread.sleep(DELAY);
+                }
             }
         }
+
+//            while (betIterator.hasNext()) {
+//                BetOuterClass.Bet bet = betIterator.next();
+//                ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
+//                producer.send(record);
+//                //noinspection BusyWait
+//                Thread.sleep(DELAY);
+//            }
+//        }
     }
 
     private static Properties createKafkaProperties(final ParameterTool params) {
@@ -51,6 +62,7 @@ public class BetGenerator {
     }
 
     static class BetIterator implements Iterator<BetOuterClass.Bet> {
+        private long selectionId = 1003l;
 
         @Override
         public boolean hasNext() {
@@ -66,7 +78,7 @@ public class BetGenerator {
             long base = 10000000L;
             long eventId = base + 1000L;
             long marketId = base + 1001L;
-            long selectionId = base + 1003L;
+            long selectionId = base + this.selectionId;
             return generateWinOnlyBet(eventId, marketId, selectionId, 2.0);
         }
 
@@ -127,6 +139,10 @@ public class BetGenerator {
                     .build();
 
             return bet;
+        }
+
+        public void setSelectionId(long s) {
+            selectionId = s;
         }
     }
 }
