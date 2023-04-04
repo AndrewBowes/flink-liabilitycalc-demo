@@ -3,6 +3,7 @@ package com.flutter.liabilitycalc.flink;
 import com.flutter.gbs.bom.proto.BetOuterClass;
 import com.flutter.liabilitycalc.model.MessageMeta;
 import com.flutter.liabilitycalc.records.OutboundBetSerde;
+import com.twitter.chill.java.UnmodifiableCollectionSerializer;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -25,7 +26,8 @@ public class LiabilityCalculatorJob {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-//        configureEnvironment(params, env);
+        env.getConfig().addDefaultKryoSerializer(
+                Class.forName("java.util.Collections$UnmodifiableCollection"), UnmodifiableCollectionSerializer.class);
 
         String inputTopic = params.get("input-topic", "betstream");
         String outputTopic = params.get("output-topic", "liabilities");
@@ -41,7 +43,7 @@ public class LiabilityCalculatorJob {
                 .build();
 
         // TODO - Define appropriate Watermark Strategy
-        DataStream<Tuple2<BetOuterClass.Bet, MessageMeta>> betMessages = env.fromSource(source, WatermarkStrategy.noWatermarks(),"BetStream");
+        DataStream<Tuple2<BetOuterClass.Bet, MessageMeta>> betMessages = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BetStream");
         DataStream<BetOuterClass.Bet> bets = betMessages.map(m -> m.f0);
 
         // TODO - Add steps to convert the Bet to a Liability & maintain running totals.
@@ -52,8 +54,6 @@ public class LiabilityCalculatorJob {
 
         env.execute("Process Bets");
     }
-
-
 
 
 }
