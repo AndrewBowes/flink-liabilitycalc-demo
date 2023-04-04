@@ -5,7 +5,7 @@ import com.flutter.liabilitycalc.model.MessageMeta;
 import com.flutter.liabilitycalc.model.SelectionLiability;
 import com.flutter.liabilitycalc.records.OutboundBetSerde;
 import com.flutter.liabilitycalc.records.SelectionLiabilitySerializationSchema;
-import com.twitter.chill.java.UnmodifiableCollectionSerializer;
+import com.flutter.liabilitycalc.records.UnmodifiableCollectionAdapter;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -33,7 +33,7 @@ public class LiabilityCalculatorJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         env.getConfig().addDefaultKryoSerializer(
-                Class.forName("java.util.Collections$UnmodifiableCollection"), UnmodifiableCollectionSerializer.class);
+                Class.forName("java.util.Collections$UnmodifiableCollection"), UnmodifiableCollectionAdapter.class);
 
         String inputTopic = params.get("input-topic", "betstream");
         String outputTopic = params.get("output-topic", "liabilities");
