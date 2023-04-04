@@ -1,12 +1,13 @@
 package com.flutter.liabilitycalc.generator;
 
 import com.flutter.gbs.bom.proto.*;
-import org.apache.flink.api.java.utils.ParameterTool;
 import com.google.protobuf.*;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Iterator;
 import java.util.Properties;
@@ -44,7 +45,7 @@ public class BetGenerator {
         String brokers = params.get("bootstrap.servers", "localhost:9092");
         Properties kafkaProps = new Properties();
         kafkaProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
-        kafkaProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
+        kafkaProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getCanonicalName());
         kafkaProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
         return kafkaProps;
     }
@@ -66,7 +67,7 @@ public class BetGenerator {
             long eventId = base + 1000L;
             long marketId = base + 1001L;
             long selectionId = base + 1003L;
-            return generateWinOnlyBet(eventId, marketId, selectionId);
+            return generateWinOnlyBet(eventId, marketId, selectionId, 2.0);
         }
 
         /**
@@ -76,9 +77,10 @@ public class BetGenerator {
          * @param marketId - The Market within the Event that contains the Selection
          * @param selectionId - The ID of the Selection which is being bet on.
          *
+         * @param price
          * @return A Bet instance which will be placed on the Kafka Topic.
          */
-        private BetOuterClass.Bet generateWinOnlyBet(final long eventId, final long marketId, final long selectionId){
+        private BetOuterClass.Bet generateWinOnlyBet(final long eventId, final long marketId, final long selectionId, double price){
 
             final long betTimestamp = System.currentTimeMillis();
             final long now = System.nanoTime();
@@ -117,7 +119,7 @@ public class BetGenerator {
                                     .build())
                             .setPrice(LegOuterClass.Leg.Price.newBuilder()
                                     .setType(LegOuterClass.Leg.Price.PriceType.LIVE_PRICE)
-                                    .setFinal(DoubleValue.of(2.0))
+                                    .setFinal(DoubleValue.of(price))
                                     .build())
                             .setType(LegOuterClass.Leg.LegType.WIN_ONLY)
                             .build())
