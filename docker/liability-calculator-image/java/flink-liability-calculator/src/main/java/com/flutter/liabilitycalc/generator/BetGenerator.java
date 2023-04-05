@@ -1,7 +1,6 @@
 package com.flutter.liabilitycalc.generator;
 
-import com.flutter.gbs.bom.proto.*;
-import com.google.protobuf.*;
+import com.flutter.gbs.bom.proto.BetOuterClass;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -9,7 +8,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-import java.util.Iterator;
 import java.util.Properties;
 
 /**
@@ -28,27 +26,29 @@ public class BetGenerator {
 
         Properties kafkaProps = createKafkaProperties(params);
         try (KafkaProducer<String, byte[]> producer = new KafkaProducer<>(kafkaProps)) {
-            BetIterator betIterator = new BetIterator();
 
-            for (int i = 0; i < 5; i++) {
-                betIterator.setSelectionId(i);
-                for (int j = 0; j < 10; j++) {
-                    BetOuterClass.Bet bet = betIterator.next();
-                    ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
-                    producer.send(record);
-                    Thread.sleep(DELAY);
+            // Generate 10 sets of 10 bets with the same selection IDs
+            for (int i = 0; i < 10; i++) {
+                BetIterator betIterator = new BetIterator(10, i);
+                while (betIterator.hasNext()) {
+                    pushBetToProducer(topic, producer, betIterator);
                 }
             }
-        }
 
+            // This will generate infinite stream of bets with varying ids
+//            BetIterator betIterator = new BetIterator();
 //            while (betIterator.hasNext()) {
-//                BetOuterClass.Bet bet = betIterator.next();
-//                ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
-//                producer.send(record);
-//                //noinspection BusyWait
-//                Thread.sleep(DELAY);
+//                pushBetToProducer(topic, producer, betIterator);
 //            }
-//        }
+        }
+    }
+
+    private static void pushBetToProducer(String topic, KafkaProducer<String, byte[]> producer, BetIterator betIterator) throws InterruptedException {
+        BetOuterClass.Bet bet = betIterator.next();
+        ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bet.toByteArray());
+        producer.send(record);
+        //noinspection BusyWait
+        Thread.sleep(DELAY);
     }
 
     private static Properties createKafkaProperties(final ParameterTool params) {
@@ -59,90 +59,5 @@ public class BetGenerator {
         kafkaProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getCanonicalName());
         kafkaProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
         return kafkaProps;
-    }
-
-    static class BetIterator implements Iterator<BetOuterClass.Bet> {
-        private long selectionId = 1003l;
-
-        @Override
-        public boolean hasNext() {
-            return true;
-        }
-
-        @Override
-        public BetOuterClass.Bet next() {
-            /*
-             TODO - Add method to generate a new bet
-             Need to supply a limited list of Events, Markets & Selections so that they can be grouped by Liability Calculator
-             */
-            long base = 10000000L;
-            long eventId = base + 1000L;
-            long marketId = base + 1001L;
-            long selectionId = base + this.selectionId;
-            return generateWinOnlyBet(eventId, marketId, selectionId, 2.0);
-        }
-
-        /**
-         * Generate a simple Win Only Bet on a given Event, Market & Selection
-         *
-         * @param eventId - The Event that the Market is part of
-         * @param marketId - The Market within the Event that contains the Selection
-         * @param selectionId - The ID of the Selection which is being bet on.
-         *
-         * @param price
-         * @return A Bet instance which will be placed on the Kafka Topic.
-         */
-        private BetOuterClass.Bet generateWinOnlyBet(final long eventId, final long marketId, final long selectionId, double price){
-
-            final long betTimestamp = System.currentTimeMillis();
-            final long now = System.nanoTime();
-            final String betId = "PP_" + now + "1234";
-
-            //noinspection UnnecessaryLocalVariable
-            final BetOuterClass.Bet bet = BetOuterClass.Bet.newBuilder()
-                    .setBetId(StringValue.of(betId))
-                    .setDestination(DestinationOuterClass.Destination.newBuilder()
-                            .setName(DestinationOuterClass.Destination.BetPlatform.PADDY_POWER)
-                            .build())
-                    .setNonCumulativePercentageOfCumulativeMaxBet(DoubleValue.of(3.72))
-                    .setCustomer(CustomerOuterClass.Customer.newBuilder()
-                            .setCountryCode(CountryOuterClass.Country.GB)
-                            .setStakeFactor(FloatValue.of(2.0f))
-                            .setLiabilityGroup(StringValue.of("VIP"))
-                            .build())
-                    .setBetAction(BetOuterClass.Bet.BetAction.PLACEMENT)
-                    .setBetType(BetOuterClass.Bet.BetType.SINGLE)
-                    .setCurrency(CurrencyOuterClass.Currency.GBP)
-                    .setBetTime(Int64Value.of(betTimestamp))
-                    .addLegs(LegOuterClass.Leg.newBuilder()
-                            .setIsRamp(BoolValue.of(true))
-                            .setSubclass(LegOuterClass.Leg.Subclass.newBuilder()
-                                    .setId(StringValue.of("123"))
-                                    .build())
-                            .setEvent(LegOuterClass.Leg.Event.newBuilder()
-                                    .setId(StringValue.of(String.valueOf(eventId)))
-                                    .build())
-                            .setMarket(LegOuterClass.Leg.Market.newBuilder()
-                                    .setId(StringValue.of(String.valueOf(marketId)))
-                                    .setIsInPlay(BoolValue.of(false))
-                                    .build())
-                            .setSelection(LegOuterClass.Leg.Selection.newBuilder()
-                                    .setId(StringValue.of(String.valueOf(selectionId)))
-                                    .build())
-                            .setPrice(LegOuterClass.Leg.Price.newBuilder()
-                                    .setType(LegOuterClass.Leg.Price.PriceType.LIVE_PRICE)
-                                    .setFinal(DoubleValue.of(price))
-                                    .build())
-                            .setType(LegOuterClass.Leg.LegType.WIN_ONLY)
-                            .build())
-                    .setStakePerLine(DoubleValue.of(10.0))
-                    .build();
-
-            return bet;
-        }
-
-        public void setSelectionId(long s) {
-            selectionId = s;
-        }
     }
 }
