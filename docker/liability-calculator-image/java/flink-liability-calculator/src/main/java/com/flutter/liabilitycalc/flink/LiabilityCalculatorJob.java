@@ -4,10 +4,14 @@ import com.flutter.gbs.bom.proto.BetOuterClass;
 import com.flutter.liabilitycalc.model.MessageMeta;
 import com.flutter.liabilitycalc.model.SelectionLiability;
 import com.flutter.liabilitycalc.records.OutboundBetSerde;
+import com.flutter.liabilitycalc.records.SelectionLiabilitySerializationSchema;
 import com.flutter.liabilitycalc.records.UnmodifiableCollectionAdapter;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -50,35 +54,32 @@ public class LiabilityCalculatorJob {
 
         // TODO - Add steps to convert the Bet to a Liability & maintain running totals.
 
+        //noinspection Convert2MethodRef
         DataStream<SelectionLiability> liabilityDataStream = bets.map(m -> getLiability(m))
                 .keyBy(v -> v.getSelectionId())
                 .reduce(new SelectionLiabilityReducer());
 
-        liabilityDataStream.print();
-//        liabilityDataStream.sinkTo(KafkaSink.<SelectionLiability>builder()
-//                .setKafkaProducerConfig(kafkaProps)
-//                .setRecordSerializer(
-//                        KafkaRecordSerializationSchema.<SelectionLiability>builder()
-//                                .setValueSerializationSchema(new SelectionLiabilitySerializationSchema())
-//                                .setTopic(outputTopic)
-//                                .build())
-//                .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
-//                .build());
+//        liabilityDataStream.print();
+        liabilityDataStream.sinkTo(KafkaSink.<SelectionLiability>builder()
+                .setKafkaProducerConfig(kafkaProps)
+                .setRecordSerializer(
+                        KafkaRecordSerializationSchema.<SelectionLiability>builder()
+                                .setValueSerializationSchema(new SelectionLiabilitySerializationSchema())
+                                .setTopic(outputTopic)
+                                .build())
+                .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                .build());
 
         env.execute("Process Bets");
     }
 
     private static SelectionLiability getLiability(BetOuterClass.Bet bet) {
-//        bet.getLe
-//        Map<String, Double> mappedLiabilities = bet.getLegsList().stream()
-//                .collect(Collectors.toMap(
-//                        k -> k.getSelection().getId().getValue(),
-//                        v -> v.getPrice().getFinal().getValue(),
-//                        (m1, m2) -> m1 + m2));
 
         // only takes the first leg for now
         String selectionId = bet.getLegs(0).getSelection().getId().getValue();
-        Double liability = bet.getLegs(0).getPrice().getFinal().getValue();
+        Double stakePerLine = bet.getStakePerLine().getValue();
+        Double price = bet.getLegs(0).getPrice().getFinal().getValue();
+        Double liability = price * stakePerLine;
 
         return new SelectionLiability(selectionId, liability);
     }
